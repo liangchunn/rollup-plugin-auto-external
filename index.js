@@ -1,14 +1,15 @@
 const getBuiltins = require('builtins');
 const path = require('path');
 const readPkg = require('read-pkg');
-const safeResolve = require('safe-resolve');
 const semver = require('semver');
+const safeResolve = require('./safe-resolve')
 
 module.exports = ({
   builtins = true,
   dependencies = true,
   packagePath,
   peerDependencies = true,
+  resolveOpts,
 } = {}) => ({
   name: 'auto-external',
   options(opts) {
@@ -27,7 +28,7 @@ module.exports = ({
       ids = ids.concat(getBuiltins(semver.valid(builtins)));
     }
 
-    ids = ids.map(safeResolve).filter(Boolean);
+    ids = ids.map(id => safeResolve(id, resolveOpts)).filter(Boolean);
 
     const external = id => {
       if (typeof opts.external === 'function' && opts.external(id)) {
@@ -42,7 +43,7 @@ module.exports = ({
        * The `id` argument is a resolved path if `rollup-plugin-node-resolve`
        * and `rollup-plugin-commonjs` are included.
        */
-      const resolvedPath = safeResolve(id);
+      const resolvedPath = safeResolve(id, resolveOpts);
 
       if (resolvedPath === null) {
         return false;
